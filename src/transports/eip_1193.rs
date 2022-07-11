@@ -149,12 +149,47 @@ impl Eip1193 {
             })
             .await
     }
+
+    /// EIP-3085: Add a new chain to a wallet
+    /// Returns: null if successful, error otherwise
+    pub async fn add_chain(&self, chain: &Chain) -> Result<serde_json::value::Value, error::Error> {
+        let js_params = JsValue::from_serde(&vec![chain])
+        .expect("couldn't send method params via JSON");
+
+        self.provider_and_listeners
+            .borrow()
+            .provider
+            .request_wrapped(RequestArguments {
+                method: String::from("wallet_addEthereumChain"),
+                params: js_sys::Array::from(&js_params),
+            })
+            .await
+    }
 }
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ChainId {
+struct ChainId {
     pub chain_id: String,
+}
+
+#[derive(serde::Serialize, Default, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Chain {
+    pub chain_id: String,
+    pub chain_name: String,
+    pub rpc_urls: [String; 1],
+    pub native_currency: BaseCurrency,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block_explorer_urls: Option<[String; 1]>,
+}
+
+#[derive(serde::Serialize, Default, PartialEq, Clone)]
+pub struct BaseCurrency {
+    pub name: String,
+    pub symbol: String, // 2-6 characters long
+    pub decimals: u32,
 }
 
 /// Event data sent from the JavaScript side to our callback.
