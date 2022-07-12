@@ -26,7 +26,7 @@ First, add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-web3 = { git = "https://github.com/monomadic/rust-web3", default-features = false, features = ["http-rustls-tls"] }
+web3 = { git = "https://github.com/monomadic/rust-web3", default-features = false, features = ["http-rustls-tls", "wasm", "eip-1193"] }
 ```
 
 ## Example
