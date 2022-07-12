@@ -150,6 +150,25 @@ impl Eip1193 {
             .await
     }
 
+    /// EIP-747: An RPC method for allowing users to easily track new assets with a suggestion from sites they are visiting.
+    /// https://eips.ethereum.org/EIPS/eip-747
+    pub async fn watch_asset(&self, asset: &ERC20Asset) -> Result<serde_json::value::Value, error::Error> {
+        let js_params = JsValue::from_serde(&vec![WatchAssetParams {
+            r#type: "ERC20".to_string(),
+            options: asset.clone(),
+        }])
+        .expect("couldn't send method params via JSON");
+
+        self.provider_and_listeners
+            .borrow()
+            .provider
+            .request_wrapped(RequestArguments {
+                method: String::from("wallet_watchAsset"),
+                params: js_sys::Array::from(&js_params),
+            })
+            .await
+    }
+
     /// EIP-3085: Add a new chain to a wallet
     /// Returns: null if successful, error otherwise
     pub async fn add_chain(&self, chain: &Chain) -> Result<serde_json::value::Value, error::Error> {
@@ -169,26 +188,57 @@ impl Eip1193 {
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+struct WatchAssetParams{
+    r#type: String,
+    options: ERC20Asset,
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 struct ChainId {
     pub chain_id: String,
 }
 
+/// A descriptor for an ethereum-compatible chain
 #[derive(serde::Serialize, Default, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Chain {
+    /// hex-based id of an ethereum compatible chain (eg. "0x01")
     pub chain_id: String,
+    /// Name of the chain
     pub chain_name: String,
+    /// Array of RPC endpoints as urls
     pub rpc_urls: [String; 1],
+    /// Base currency of the chain
     pub native_currency: BaseCurrency,
 
+    /// Block explorer urls
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block_explorer_urls: Option<[String; 1]>,
 }
 
+/// Metadata for an ERC20 asset.
+#[derive(serde::Serialize, Default, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ERC20Asset {
+    /// public address of token contract
+    pub address: String,
+    /// ticker symbol used (eg USDC)
+    pub token_symbol: String,
+    /// decimal places (usually 8)
+    pub decimals: u32,
+    /// url for the token
+    pub image_url: String,
+}
+
+/// A base currency for en ethereum compatible chain
 #[derive(serde::Serialize, Default, PartialEq, Clone)]
 pub struct BaseCurrency {
+    /// currency name
     pub name: String,
+    /// ticker symbol of the currency
     pub symbol: String, // 2-6 characters long
+    /// number of decimal places (usually 8)
     pub decimals: u32,
 }
 
