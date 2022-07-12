@@ -12,6 +12,14 @@ Rust implementation of Web3.js library.
 
 Documentation: [crates.io][docs-rs-url]
 
+## This Branch
+
+This branch of `rust-web3` supports the additional methods for metamask and other eip1193-compatible clients:
+
+- `wallet_addEthereumChain`
+- `wallet_watchAsset`
+- `wallet_addEthereumChain`
+
 ## Usage
 
 First, add this to your `Cargo.toml`:
